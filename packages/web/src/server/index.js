@@ -267,9 +267,21 @@ export default function initReactivesearch(componentCollection, searchState, set
 			queryLog,
 		};
 
+		const reques = config.transformRequest ? config.transformRequest(finalQuery) : finalQuery;
+		const newRequest = [];
+		reques.forEach((item) => {
+			if (!item.preference) {
+				item._source = {
+					includes: ["*"],
+					excludes: ["searchable_text"]
+				}
+			}
+			newRequest.push(item)
+		});
+
 		appbaseRef.msearch({
 			type: config.type === '*' ? '' : config.type,
-			body: config.transformRequest ? config.transformRequest(finalQuery) : finalQuery,
+			body: newRequest
 		}).then((res) => {
 			orderOfQueries.forEach((component, index) => {
 				const response = res.responses[index];
